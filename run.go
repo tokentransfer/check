@@ -76,6 +76,30 @@ func TestingT(testingT *testing.T) {
 	}
 }
 
+// Run runs the provided test suite using the default run configuration.
+func TestingRun(testingT *testing.T, suite interface{}) *Result {
+	benchTime := *newBenchTime
+	if benchTime == 1*time.Second {
+		benchTime = *oldBenchTime
+	}
+	conf := &RunConf{
+		Filter:        *oldFilterFlag + *newFilterFlag,
+		Verbose:       *oldVerboseFlag || *newVerboseFlag,
+		Stream:        *oldStreamFlag || *newStreamFlag,
+		Benchmark:     *oldBenchFlag || *newBenchFlag,
+		BenchmarkTime: benchTime,
+		BenchmarkMem:  *newBenchMem,
+		KeepWorkDir:   *oldWorkFlag || *newWorkFlag,
+	}
+	runner := newSuiteRunner(suite, conf)
+	result := runner.run()
+	println(result.String())
+	if !result.Passed() {
+		testingT.Fail()
+	}
+	return result
+}
+
 // RunAll runs all test suites registered with the Suite function, using the
 // provided run configuration.
 func RunAll(runConf *RunConf) *Result {
